@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Form</title>
+    <link rel="stylesheet" href="userBooking.css">
+    <style>
+        /* Add this style for the popup */
+        .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        /* Add styles for the confirmation popup */
+        #confirmationPopup {
+            display: flex; /* Changed to flex for better centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Add a semi-transparent background */
+            display: none;
+            
+        }
+        #confirmationPopup > div {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-align: center; /* Center text within the popup */
+        }
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <h1>HomeAssist</h1>
+        </div>
+        <nav class="nav-menu">
+            <a href="profile.html" class="nav-item">
+                <i class="icon-home"></i>
+                HOME
+            </a>
+           
+            <a href="#" class="nav-item">
+                <i class="icon-booking"></i>
+                MY BOOKING
+            </a>
+            <a href="userCity.html" class="nav-item active">
+                <i class="icon-search"></i>
+                SEARCH MAID
+            </a>
+            <div class="user-profile dropdown">
+              <button class="dropbtn">
+                  <i class="icon-user"></i>
+                  <span id="userGreeting">HELLO, USER</span>
+                  <i class="icon-chevron-down"></i>
+              </button>
+              <div class="dropdown-content">
+                  <a href="#" onclick="logout()">Logout</a>
+              </div>
+          </div>
+        </nav>
+    </header> 
+
+    <div class="booking-form">
+        <h2>Booking Form</h2>
+        <form id="bookingForm">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" >
+            </div>
+
+            <div class="form-group">
+                <label for="contact">Contact Number</label>
+                <input type="tel" id="contact" name="contact" placeholder="Enter your contact number" pattern="[0-9]{10}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Select Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="days">Select Days</label>
+                <select id="days" name="days" required>
+                    <option value="">Choose number of days</option>
+                    <option value="1">1 Day</option>
+                    <option value="2">2 Days</option>
+                    <option value="3">3 Days</option>
+                    <option value="4">4 Days</option>
+                    <option value="5">5 Days</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hours">Select Hours</label>
+                <select id="hours" name="hours" required>
+                    <option value="">Choose hours per day</option>
+                    <option value="2">2 Hours</option>
+                    <option value="4">4 Hours</option>
+                    <option value="6">6 Hours</option>
+                    <option value="8">8 Hours</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="register-btn">Book Now</button>
+            </div>
+        </form>
+        <div id="errorMessage" style="color: red;"></div>
+    </div>
+
+    <div id="confirmationPopup">
+        <div>
+            <h3>Booking Confirmed</h3>
+            <p>Your booking has been confirmed. Redirecting to orders page...</p>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (userData) {
+                document.getElementById('name').value = `${userData.firstName} ${userData.lastName}`;
+                document.getElementById('userGreeting').textContent = `HELLO, ${userData.firstName.toUpperCase()}`;
+            }
+        });
+
+        document.getElementById("bookingForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const formData = {
+                name: document.getElementById("name").value,
+                contact: document.getElementById("contact").value,
+                date: document.getElementById("date").value,
+                days: document.getElementById("days").value,
+                hours: document.getElementById("hours").value,
+            };
+
+            try {
+                const response = await fetch('/book-maid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    // Show the popup
+                    const popup = document.getElementById('confirmationPopup');
+                    popup.style.display = 'flex';
+
+                    // Redirect after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'orders.html';
+                    }, 2000);
+                } else {
+                    const errorData = await response.json();
+                    document.getElementById('errorMessage').textContent = errorData.error || 'An error occurred while booking. Please try again.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = 'An error occurred while booking. Please try again.';
+            }
+        });
+
+        // ... (keep the existing updateUserGreeting and logout functions) ...
+    </script>
+</body>
+</html>
